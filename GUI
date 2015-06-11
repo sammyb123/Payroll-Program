@@ -1,0 +1,348 @@
+/*
+ * Week 2 Program
+ * Payroll Program
+ * Programmer: Isam Babli
+ * 6/7/2015
+ */
+
+import javax.swing.*;   
+import java.awt.event.*;
+import java.awt.*;
+import javax.swing.event.*;
+import java.util.ArrayList;
+import java.text.DecimalFormat;
+
+public class Payroll extends JFrame{
+
+	//Declare global variables
+    JButton clearButton = new JButton("Clear");
+    double weeklyPay = 0.0;
+    double overTime = 0.0;
+    double hours = 0.0;
+    double payRate = 0.0;
+    double hoursWorked = 0.0;
+    double rate = 0.0;
+    JLabel totalPayLabel;
+    JTextField totalPayField;
+    JButton calculate;
+    JButton exit;
+    private JTextArea list;
+    private JScrollPane scrollPane;
+    JRadioButton hr;
+    JRadioButton accounting;
+    JRadioButton sales;
+    JRadioButton marketing;
+    JRadioButton shipping;
+    ButtonGroup bg;
+    JPanel buttonPanel;
+    JPanel inputPanel;
+    JPanel outputPanel;
+    JPanel calcPanel;
+    JPanel payPanel;
+    JLabel fnameLabel;
+    JLabel lnameLabel;
+    JLabel hoursLabel;
+    JLabel rateLabel;
+    JTextField fnameField;
+    JTextField lnameField;
+    JTextField hoursField;
+    JTextField rateField;
+    DecimalFormat dollar;
+		
+    //Create constructor and set the layout
+    public Payroll(){
+	super("Payroll Calculator");
+                
+	setPreferredSize(new Dimension(300, 550));		
+	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	setLayout(new BorderLayout(5,5));
+
+	buildRadioButtons();
+	add(buttonPanel, BorderLayout.NORTH);	
+	buttonPanel.setBorder(BorderFactory.createTitledBorder("Department"));		
+		
+	buildInput();
+	add(inputPanel, BorderLayout.WEST);
+            
+	inputPanel.setBorder(BorderFactory.createTitledBorder("Input"));
+
+    buildButtons();
+    add(calcPanel, BorderLayout.EAST);
+        
+	buildOutput();
+    add(outputPanel, BorderLayout.SOUTH);
+
+	pack();
+	setVisible(true);
+	
+	}
+	
+    /*
+     * This method sets the panel containing the department buttons
+     */
+    public void buildRadioButtons(){
+    	buttonPanel = new JPanel();
+	
+    	hr = new JRadioButton("HR", true);
+    	hr.setMnemonic(KeyEvent.VK_H);
+
+    	accounting = new JRadioButton("Accounting");
+    	accounting.setMnemonic(KeyEvent.VK_A);
+		
+    	sales = new JRadioButton("Sales");
+    	sales.setMnemonic(KeyEvent.VK_S);
+		
+    	marketing = new JRadioButton("Marketing");
+    	marketing.setMnemonic(KeyEvent.VK_M);
+		
+    	shipping = new JRadioButton("Shipping");
+    	shipping.setMnemonic(KeyEvent.VK_I);
+		
+    	//add the buttons to the panel
+    	buttonPanel.add(hr);
+    	buttonPanel.add(accounting);
+    	buttonPanel.add(sales);
+    	buttonPanel.add(marketing);
+    	buttonPanel.add(shipping);		
+		
+    	//add buttons to button group
+    	bg = new ButtonGroup();
+    	bg.add(hr);
+    	bg.add(accounting);
+    	bg.add(sales);
+    	bg.add(marketing);
+    	bg.add(shipping);
+		
+	}
+	
+    /*
+     * This  method creates the input panel
+     */
+    public void buildInput(){
+    	inputPanel = new JPanel();
+        setLayout(new GridLayout(4,2));
+            
+        fnameLabel = new JLabel("First Name  ");
+        lnameLabel = new JLabel("Last Name  ");
+        hoursLabel = new JLabel(" Hours Worked");
+        rateLabel = new JLabel("   Pay Rate   ");
+
+        fnameField = new JTextField(15);
+        lnameField = new JTextField(15);
+        hoursField = new JTextField(13);
+        rateField = new JTextField(15);
+                
+        inputPanel.add(fnameLabel);
+        inputPanel.add(fnameField);
+        inputPanel.add(lnameLabel);
+        inputPanel.add(lnameField);
+        inputPanel.add(hoursLabel);
+        inputPanel.add(hoursField);
+        inputPanel.add(rateLabel);
+        inputPanel.add(rateField);
+		
+	}
+	
+    /*
+     * This method builds the calculate, exit and clear buttons
+     */
+	public void buildButtons(){
+
+        calcPanel = new JPanel();
+                
+        calcPanel.setLayout(new FlowLayout());
+        calculate = new JButton("Calculate");
+        calculate.setMnemonic(KeyEvent.VK_C);
+        calculate.addActionListener(new CalcListener());
+			
+        exit = new JButton("Exit");
+        exit.setMnemonic(KeyEvent.VK_X);
+        exit.addActionListener(new ExitListener());	
+		
+        clearButton = new JButton("Clear");
+        clearButton.setMnemonic(KeyEvent.VK_E);
+        clearButton.addActionListener(new ClearListener());
+                        
+        totalPayLabel = new JLabel("Total Weekly Pay");
+        totalPayField = new JTextField(10);
+        totalPayField.setEditable(false);
+			
+        calcPanel.add(calculate);
+        calcPanel.add(exit);
+        calcPanel.add(clearButton);
+        calcPanel.add(totalPayLabel);
+        calcPanel.add(totalPayField);
+        calcPanel.setBorder(BorderFactory.createBevelBorder(1));
+	
+	}
+	
+	/*
+	 * This method receives the calculate data and displays it
+	 */
+    public void buildOutput(){
+    	outputPanel = new JPanel();
+    	outputPanel.setLayout(new BorderLayout());
+    	dollar = new DecimalFormat("0.00");      //DecimalFormat class will format the results to 2 decimal points for display
+    	outputPanel.setPreferredSize(new Dimension(100,100));//This call sets the panel size
+    	list = new JTextArea("Name\t Dept\t Weekly Pay \n ------- \t ------- \t ---------------- \n", 100,100);//Set the JTextArea header
+    	scrollPane = new JScrollPane(list);//add a scroll pane and add the JTextArea to it
+    	scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);//ensure we do not get horizontal scroll bar
+    	scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);//set vertical scroll bar
+    	outputPanel.add(scrollPane);
+    	outputPanel.setBorder(BorderFactory.createBevelBorder(1));
+        	
+	}
+	
+    /*
+     * This method gets called from the CalcListener to calculate if all JTextFields are not null
+     */
+	public void buildAgain(){
+        
+		String rateStr, hoursStr, firstName, lastName, dept;//declare variables to hold the JTextField input as string
+		
+        firstName = (String) fnameField.getText();
+        lastName = (String) lnameField.getText();
+        
+    	rateStr = rateField.getText();
+    	rate = Double.parseDouble(rateStr);//convert the rate field into double in order to calculate it
+    			
+    	hoursStr = hoursField.getText();
+    	hoursWorked = Double.parseDouble(hoursStr);//convert the hours into double in order to calculate it
+		
+    	//check how many hours worked to make sure they are within range
+    	if(hoursWorked >= 0 && hoursWorked <=60){
+    		hours = hoursWorked;
+    	
+    	//Display message if hours are not within range
+    	}else{
+        JOptionPane.showMessageDialog(null, "You have entered an invalid number of hours. \n"
+	                          + " Please enter a number between 0 and 60.", "Hour Entry Error", 
+	                          JOptionPane.ERROR_MESSAGE);
+    	
+    	//Clears JTextFields after the error message
+		fnameField.setText("");
+		lnameField.setText("");
+		hoursField.setText("");
+		rateField.setText("");
+
+    	return;}
+    	
+		//check the hourly rate to make sure it is within  range
+    	if(rate >= 6 && rate <=150){
+    		payRate = rate;
+    	
+    	//display an error message if rate entered not within range
+    	}else{ 
+    		JOptionPane.showMessageDialog(null, "You have entered an invalid pay rate. \n "
+	                          + "Please enter the rate between 6 and 150.", "Pay Rate Error", 
+	                           JOptionPane.ERROR_MESSAGE);
+    	
+    	
+    	//clear the JTextFields  after error message
+		fnameField.setText("");
+		lnameField.setText("");
+		hoursField.setText("");
+		rateField.setText("");
+		
+		return;}
+		//calculate the pay regular hours
+    	if(hours >= 0 && hours <= 40){
+    		weeklyPay = hours*payRate;
+    		
+    		//calculate overtime pay
+    	}else if(hours > 40 && hours <= 60){
+    		overTime = (hours-40) * (payRate*1.5);
+            weeklyPay = overTime + (40*payRate);
+    	}
+
+    	//display the total pay in uneditable table
+    	totalPayField.setText("$"+dollar.format(weeklyPay));
+    
+    	//send name to JTextArea
+    	list.append(firstName + " ");
+    	list.append(lastName);
+    
+    	//get the selected department
+    	if(hr.isSelected())
+    		dept = hr.getText();
+    	else if(accounting.isSelected())
+    		dept = accounting.getText();//"Accounting";
+    	else if(marketing.isSelected())
+    		dept = marketing.getText();
+    	else if(sales.isSelected())
+    		dept = sales.getText();
+    	else
+    		dept = shipping.getText();
+    
+    	//send selected department and pay to JTextArea
+    	list.append("\t" + dept);
+    	list.append("\t$" + dollar.format(weeklyPay) + "\n");
+		
+		}
+		
+		//when  calculate is pressed, this method checks for completeness of JTextAreas then calls the method to calculate and process data
+		private class CalcListener implements ActionListener{
+			public void actionPerformed(ActionEvent e){		
+
+        
+		if(fnameField.getText().equals("")){
+			JOptionPane.showMessageDialog(null, "Please enter a first name", "Blank First Name", JOptionPane.ERROR_MESSAGE);
+			fnameField.setText("");
+			lnameField.setText("");
+			hoursField.setText("");
+			rateField.setText("");
+		}
+		
+		else if(lnameField.getText().equals("")){
+			JOptionPane.showMessageDialog(null, "Please enter a last name", "Blank Last Name", JOptionPane.ERROR_MESSAGE);
+			fnameField.setText("");
+			lnameField.setText("");
+			hoursField.setText("");
+			rateField.setText("");
+		}
+		
+		else if(hoursField.getText().equals("")){
+			JOptionPane.showMessageDialog(null, "Please enter the number of hours worked", "Blank Hours", JOptionPane.ERROR_MESSAGE);
+			fnameField.setText("");
+			lnameField.setText("");
+			hoursField.setText("");
+			rateField.setText("");
+		}
+			
+		else if(rateField.getText().equals("")){
+			JOptionPane.showMessageDialog(null, "Please enter rate of pay", "Blank Pay Rate", JOptionPane.ERROR_MESSAGE);
+			fnameField.setText("");
+			lnameField.setText("");
+			hoursField.setText("");
+			rateField.setText("");
+		}
+
+		else
+			buildAgain();//calls method to process  data
+		}
+	}
+	
+	//pressing the exit button calls this method to exit the program
+	private class ExitListener implements ActionListener{
+		public void actionPerformed(ActionEvent e){
+			System.exit(0);
+		}
+	}
+	
+	//This method clears all JTextFields
+	private class ClearListener implements ActionListener{
+            public void actionPerformed(ActionEvent e){
+		fnameField.setText("");
+		lnameField.setText("");
+		hoursField.setText("");
+		rateField.setText("");
+		totalPayField.setText("");
+			
+		}
+	}
+
+	 //This is the main method
+      public static void main(String[] args) {
+         new Payroll();
+        }
+}
